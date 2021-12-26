@@ -1,38 +1,24 @@
----
-title: "Boat Sales Analysis"
-author: "Brittany Callahan"
-date: "December 2021"
-output: 
-  html_document:
-    keep_md: true
-    css: style.css
----
-
-
-\
-
-
+# Boat Sales Analysis
+<br>  
+  
 ## PROBLEM
 
 In this case study, a marketing team is preparing a weekly newsletter for boat owners to help them get more views of their boat and stay on top of market trends. What are the common characteristics and features among boats that get the most views?
-\
-\
-
+<br>
+<br>
 ## GOAL
 
 *Generate Seller Insights* 💡
 
 We need to generate insights for our sellers to share in our weekly newsletter. These insights will help them stay on top of the latest trends and get more views on our platform. To do this, I will explore the common **characteristics** and **features** among boats that get the **most views**. 
-\
-\
-
+<br>
+<br>
 ## TRENDS
 
 ### 1. Do the most expensive boats get the most views?
-\
+
 I first examined a specific question that was posed by the marketing team: Do the most expensive boats get the most views? To figure this out, I created a scatter plot of the price and views and added a regression line using `geom_smooth`.
-\
-\
+
 
 ```r
 boat_data %>% 
@@ -51,16 +37,11 @@ boat_data %>%
 ![](boat-sales-analysis_files/figure-html/price-plot-1.png)<!-- -->
 
 **<span style="color:#4446eb">No</span>, a higher listing price does not get more views.** There is no statistically significant correlation between price and listing views.
-\
-\
-
+<br>
+<br>
 ### 2. <span style="color:#4446eb">Switzerland</span> is a popular market for boats
-\
+
 **🇨🇭 Boats listed in Switzerland make up 25% of all views on the site**.
-\
-\
-
-
 
 ```r
 boat_data %>% 
@@ -74,7 +55,6 @@ boat_data %>%
 ```
 
 
-
 Table: Table 1.1 Listing views by country
 
 |Country     | Total Views| Percent Views|
@@ -84,29 +64,26 @@ Table: Table 1.1 Listing views by country
 |Italy       |      209958|     14.235387|
 |Netherlands |      121982|      8.270516|
 |France      |      118098|      8.007176|
-\
+<br>
 
 In addition, the highest viewed boats are those listed in Swiss Francs (CHF). **<span style="color:#4446eb">Listings made in CHF get 181%</span> more views** on average than other types of currencies.
 
 ![](boat-sales-analysis_files/figure-html/currency-plot-1.png)<!-- -->
-\
-\
-
+<br>
+<br>
 ### 3. <span style="color:#4446eb">Used boats</span> get the most views
-\
+
 For this next part of the analysis I looked at the most viewed listings, the top 25% of listings with the most views, as they were the highest performers for viewership.
-\
-\
+
 
 ```r
 top_25_perc <- boat_data %>% 
   filter(views > quantile(boat_data$views, prob = .75))
 ```
+<br>
 
-\
 After plotting new vs used boat listings, we can see that **of the top 25% most viewed listings, <span style="color:#4446eb">78%</span> are used...**
-\
-\
+
 
 ```r
 top_25_perc %>% 
@@ -123,11 +100,10 @@ top_25_perc %>%
 ```
 
 ![](boat-sales-analysis_files/figure-html/used-new-count-1.png)<!-- -->
-\
-\
+
+
 **... and <span style="color:#4446eb">used boats get 21% more views</span> on average than new boats**.
-\
-\
+
 
 ```r
 boat_data %>% 
@@ -147,14 +123,11 @@ boat_data %>%
 ```
 
 ![](boat-sales-analysis_files/figure-html/used-new-avg-1.png)<!-- -->
-\
-\
-
+<br>
+<br>
 ### 4. <span style="color:#4446eb">Motor Yachts, Sports Boats, and Cabin Boats</span> are popular 
-\
+
 **🚤 Motor Yachts, Sports Boats, and Cabin Boats make up over <span style="color:#4446eb">51%</span> of most-viewed listings**. These three categories outperform the other 21 types of boats combined.
-\
-\
 
 
 ```r
@@ -179,14 +152,11 @@ top_25_perc %>%
 ```
 
 ![](boat-sales-analysis_files/figure-html/views-by-type-1.png)<!-- -->
-\
-\
-
+<br>
+<br>
 ### 5. Listings with <span style="color:#4446eb">multiple tags</span> get more views
-\
+
 🏷 When comparing listings by number of boat type tags, those with **multiple tags received more views**. Adding **multiple tags increases views by over <span style="color:#4446eb">26%</span>** on average per tag.
-\
-\
 
 
 ```r
@@ -205,13 +175,12 @@ top_25_perc_sep %>%
 ```
 
 ![](boat-sales-analysis_files/figure-html/views-by-multi-tag-1.png)<!-- -->
-\
-\
-
+<br>
+<br>
 # Recommendations
 
 ### Getting more views for our sellers 👀
-\
+
 **<span style="color:#4446eb">Sellers should consider the latest trends when choosing inventory</span>**
 
 - Swiss buyers are very active
@@ -219,16 +188,14 @@ top_25_perc_sep %>%
 - Used boats are popular
 
 - Motor Yachts, Sports Boats, and Cabin Boats are popular
-\
-\
+
 
 **<span style="color:#4446eb">Sellers should add multiple tags when applicable and complete listing entries</span>**
 
 - Listings with multiple tags,  when applicable, will increase sellers’ exposure
 
-- Encourage sellers to fill out their listings completely so we can give them more recommendations - more data = more insights!
-\
-\
-\
-
-
+- Encourage sellers to fill out their listings completely so we can give them more recommendations: more data = more insights!
+<br>
+<br>
+<br>
+<br>
