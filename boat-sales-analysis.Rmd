@@ -137,9 +137,6 @@ theme_dc <- function(){
       
       axis.text.x = element_text(            #margin for axis text
         margin = margin(5, b = 10))
-      
-      #since the legend often requires manual tweaking 
-      #based on plot content, don't define it here
     )
 }
 ```
@@ -264,12 +261,12 @@ top_25_perc %>%
 ```
 \
 \
-**... and <span style="color:#4446eb">used boats get 21% more views</span> on average than new boats**.
+**... and <span style="color:#4446eb">used boats get 29% more views</span> on average than new boats**.
 \
 \
 ```{r used-new-avg, message = FALSE}
 
-boat_data %>% 
+top_25_perc %>% 
   filter(!is.na(condition)) %>% 
   group_by(condition) %>% 
   summarize(total = n(),

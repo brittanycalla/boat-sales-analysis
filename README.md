@@ -102,11 +102,11 @@ top_25_perc %>%
 ![](boat-sales-analysis_files/figure-html/used-new-count-1.png)<!-- -->
 
 
-**... and <span style="color:#4446eb">used boats get 21% more views</span> on average than new boats**.
+**... and <span style="color:#4446eb">used boats get 29% more views</span> on average than new boats**.
 
 
 ```r
-boat_data %>% 
+top_25_perc %>% 
   filter(!is.na(condition)) %>% 
   group_by(condition) %>% 
   summarize(total = n(),
