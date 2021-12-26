@@ -8,141 +8,7 @@ output:
     css: style.css
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
-library(janitor)
-library(quantmod)
-library(ggthemes)
-library(knitr)
 
-# importing data
-boat_data <- read_csv("boat_data.csv")
-
-# cleaning data
-boat_data <- boat_data %>% 
-  clean_names() %>% # lowercase names
-  rename(views = number_of_views_last_7_days) %>% # renaming lengthy column
-  mutate(year_built = na_if(year_built, 0)) # converting 0s to NA
-
-# adding extra info
-boat_data <- boat_data %>% 
-  mutate(condition = case_when( # adding condition column
-    str_detect(type, 'Used') ~ 'used',
-    str_detect(type, 'new') ~ 'new'),
-    powered_by = case_when( # adding fuel type column
-      str_detect(type, c('Gas', 'Unleaded')) ~ 'gas',
-      str_detect(type, c('Diesel')) ~ 'diesel',
-      str_detect(type, c('Electric')) ~ 'electric',
-      str_detect(type, c('Propane')) ~ 'propane',
-      str_detect(type, c('Hybrid')) ~ 'hybrid'))
-
-# adding index
-boat_data <- tibble::rowid_to_column(boat_data, "index")
-
-# converting currency
-# separating out currency type
-boat_data <- boat_data %>% 
-  mutate(currency = str_sub(price, 1, 3))
-
-# look up most common currency type
-table(boat_data$currency) # EUR
-
-# change Â£ to GBP
-boat_data <- boat_data %>% 
-  mutate(currency = case_when( # currency column
-    str_detect(currency, '£') ~ 'GBP',
-    TRUE ~ currency),
-    price = str_replace(price, 'Â£', 'GBP')) # price column
-
-# remove currency type from price column
-boat_data <- boat_data %>% 
-  mutate(price = str_sub(price, 5))
-
-# change price column to numeric
-boat_data <- boat_data %>%
-mutate(price = as.numeric(price))
-
-# convert all prices to EUR
-from <- c("CHF", "DKK", "GBP")
-to <- c("EUR", "EUR", "EUR")
-exchange_rates <- getQuote(paste0(from, to, "=X"))
-
-boat_data <- boat_data %>% 
-  mutate(price = case_when(
-    currency == 'CHF' ~ price * 0.94910,
-    currency == 'DKK' ~ price * 0.13435,
-    currency == 'GBP' ~ price * 1.18582,
-    TRUE ~ price))
-
-#clean up location column
-boat_data <- boat_data %>% 
-  mutate(country = sub(" .*", "", location))
-
-# top 25%
-top_25_perc <- boat_data %>% 
-  filter(views > 172)
-
-# separating out tags
-top_25_perc_sep <- top_25_perc %>% 
-  separate_rows(boat_type, sep = ",") %>% 
-  group_by(index) %>% 
-  mutate(no_tags = n_distinct(boat_type))
-
-
-# custom theme
-theme_dc <- function(){ 
-  font <- "Proxima Nova"   #assign font family up front
-  
-  theme_minimal() %+replace%    #replace elements we want to change
-    
-    theme(
-      
-      #grid elements
-      panel.grid.major = element_blank(),    #strip major gridlines
-      panel.grid.minor = element_blank(),    #strip minor gridlines
-      axis.ticks = element_blank(),          #strip axis ticks
-      
-      #since theme_minimal() already strips axis lines, 
-      #we don't need to do that again
-      axis.line = element_line(color = '#d3d3d3'),
-      
-      #text elements
-      plot.title = element_text(             #title
-        family = font,            #set font family
-        size = 20,                #set font size
-        face = 'bold',            #bold typeface
-        color = '#595959',        #change color
-        hjust = 0,                #left align
-        vjust = 2),               #raise slightly
-      
-      plot.subtitle = element_text(          #subtitle
-        family = font,            #font family
-        size = 14,                #font size
-        color = '#595959',        #change color
-        hjust = 0),               #left align
-      
-      plot.caption = element_text(           #caption
-        family = font,            #font family
-        size = 9,                 #font size
-        hjust = 1),               #right align
-      
-      axis.title = element_text(             #axis titles
-        family = font,            #font family
-        size = 10),               #font size
-      
-      axis.text = element_text(              #axis text
-        family = font,            #axis family
-        size = 9),                #font size
-      
-      axis.text.x = element_text(            #margin for axis text
-        margin = margin(5, b = 10))
-      
-      #since the legend often requires manual tweaking 
-      #based on plot content, don't define it here
-    )
-}
-```
 \
 
 
@@ -167,7 +33,8 @@ We need to generate insights for our sellers to share in our weekly newsletter. 
 I first examined a specific question that was posed by the marketing team: Do the most expensive boats get the most views? To figure this out, I created a scatter plot of the price and views and added a regression line using `geom_smooth`.
 \
 \
-```{r price-plot, message = FALSE}
+
+```r
 boat_data %>% 
   mutate(log_price = log(price)) %>% 
   ggplot(aes(log_price, views)) +
@@ -179,8 +46,9 @@ boat_data %>%
   theme_dc() +
   scale_y_continuous(expand = expansion(mult = c(0, .1))) +
   scale_x_continuous(expand = expansion(mult = c(0, .1)))
-
 ```
+
+![](boat-sales-analysis_files/figure-html/price-plot-1.png)<!-- -->
 
 **<span style="color:#4446eb">No</span>, a higher listing price does not get more views.** There is no statistically significant correlation between price and listing views.
 \
@@ -191,18 +59,10 @@ boat_data %>%
 **🇨🇭 Boats listed in Switzerland make up 25% of all views on the site**.
 \
 \
-```{r CHF-avg, echo=FALSE, message = FALSE}
 
-avg_views_not_CHF <- boat_data %>% 
-  filter(currency != "CHF") %>% 
-  summarize(avg_views = mean(views))
 
-avg_views_CHF <- boat_data %>% 
-  filter(currency == "CHF") %>% 
-  summarize(avg_views = mean(views))
-```
 
-```{r country-table}
+```r
 boat_data %>% 
   group_by(country) %>% 
   summarize(total_views = sum(views)) %>% 
@@ -212,24 +72,23 @@ boat_data %>%
   kable(col.names = c("Country", "Total Views", "Percent Views"),
         caption = "Table 1.1 Listing views by country")
 ```
+
+
+
+Table: Table 1.1 Listing views by country
+
+|Country     | Total Views| Percent Views|
+|:-----------|-----------:|-------------:|
+|Switzerland |      374431|     25.386839|
+|Germany     |      286993|     19.458445|
+|Italy       |      209958|     14.235387|
+|Netherlands |      121982|      8.270516|
+|France      |      118098|      8.007176|
 \
 
-In addition, the highest viewed boats are those listed in Swiss Francs (CHF). **<span style="color:#4446eb">Listings made in CHF get `r round(((avg_views_CHF - avg_views_not_CHF) / avg_views_not_CHF) * 100)`%</span> more views** on average than other types of currencies.
+In addition, the highest viewed boats are those listed in Swiss Francs (CHF). **<span style="color:#4446eb">Listings made in CHF get 181%</span> more views** on average than other types of currencies.
 
-```{r currency-plot, echo = FALSE, message = FALSE} 
-
-boat_data %>%
-  group_by(currency) %>% 
-  summarize(avg_views = mean(views)) %>% 
-  ggplot(aes(currency, avg_views, fill = ifelse(currency == "CHF", "Highlighted", "Normal"))) +
-  geom_col(show.legend = FALSE) +
-  scale_fill_manual(name = "area", values=c("#4446eb","#515151")) +
-  labs(x = "Currency", 
-       y = "Average Views", 
-       title = "\nAverage Listing Views by Currency") +
-  theme_dc() +
-  scale_y_continuous(expand = expansion(mult = c(0, .1)))
-```
+![](boat-sales-analysis_files/figure-html/currency-plot-1.png)<!-- -->
 \
 \
 
@@ -238,8 +97,8 @@ boat_data %>%
 For this next part of the analysis I looked at the most viewed listings, the top 25% of listings with the most views, as they were the highest performers for viewership.
 \
 \
-```{r top-25, message = FALSE}
 
+```r
 top_25_perc <- boat_data %>% 
   filter(views > quantile(boat_data$views, prob = .75))
 ```
@@ -248,8 +107,8 @@ top_25_perc <- boat_data %>%
 After plotting new vs used boat listings, we can see that **of the top 25% most viewed listings, <span style="color:#4446eb">78%</span> are used...**
 \
 \
-```{r used-new-count, message = FALSE}
 
+```r
 top_25_perc %>% 
   filter(!is.na(condition)) %>% 
   ggplot(aes(condition, fill = ifelse(condition == "used", "Highlighted", "Normal"))) +
@@ -262,13 +121,15 @@ top_25_perc %>%
   theme_dc() +
   scale_y_continuous(expand = expansion(mult = c(0, .1)))
 ```
+
+![](boat-sales-analysis_files/figure-html/used-new-count-1.png)<!-- -->
 \
 \
 **... and <span style="color:#4446eb">used boats get 21% more views</span> on average than new boats**.
 \
 \
-```{r used-new-avg, message = FALSE}
 
+```r
 boat_data %>% 
   filter(!is.na(condition)) %>% 
   group_by(condition) %>% 
@@ -283,8 +144,9 @@ boat_data %>%
        subtitle = "Top 25% Most-Viewed Listings") +
   theme_dc() +
   scale_y_continuous(expand = expansion(mult = c(0, .1)))
-
 ```
+
+![](boat-sales-analysis_files/figure-html/used-new-avg-1.png)<!-- -->
 \
 \
 
@@ -294,7 +156,8 @@ boat_data %>%
 \
 \
 
-```{r views-by-type, message = FALSE}
+
+```r
 top_25_perc %>%
    filter(!is.na(boat_type)) %>% 
   mutate(boat_type_top = case_when(
@@ -314,6 +177,8 @@ top_25_perc %>%
   theme_dc() +
   scale_y_continuous(expand = expansion(mult = c(0, .1)))
 ```
+
+![](boat-sales-analysis_files/figure-html/views-by-type-1.png)<!-- -->
 \
 \
 
@@ -323,7 +188,8 @@ top_25_perc %>%
 \
 \
 
-```{r views-by-multi-tag, message = FALSE}
+
+```r
 top_25_perc_sep %>% 
   group_by(no_tags) %>% 
   summarize(avg_views = mean(views)) %>% 
@@ -337,6 +203,8 @@ top_25_perc_sep %>%
   theme_dc() +
   scale_y_continuous(expand = expansion(mult = c(0, .1)))
 ```
+
+![](boat-sales-analysis_files/figure-html/views-by-multi-tag-1.png)<!-- -->
 \
 \
 
